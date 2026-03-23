@@ -8,7 +8,11 @@ from langchain_postgres import PGVector
 load_dotenv()
 
 # Ingestion is synchronous — use standard postgresql:// driver
-db_url = os.environ["DATABASE_URL"].replace("postgresql+asyncpg://", "postgresql://")
+db_url = os.environ["DATABASE_URL"].replace(
+    "postgresql+asyncpg://", "postgresql+psycopg://"
+).replace(
+    "postgresql://", "postgresql+psycopg://"
+)
 
 loader = DirectoryLoader("./docs", glob="**/*.md", loader_cls=UnstructuredMarkdownLoader)
 documents = loader.load()

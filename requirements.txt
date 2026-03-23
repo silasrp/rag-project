@@ -5,9 +5,8 @@ langchain-postgres
 langchain-text-splitters
 fastapi
 uvicorn
-psycopg2-binary
 python-dotenv
 unstructured
 markdown
 tiktoken
-asyncpg
+psycopg[binary,pool]

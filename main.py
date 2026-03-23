@@ -10,20 +10,18 @@ load_dotenv()
 
 embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
 
-connectionDB = os.environ["DATABASE_URL"]
-
-# Disable prepared statement cache — required for PGVector with asyncpg
-if "?" in connectionDB:
-    connectionDB += "&prepared_statement_cache_size=0"
-else:
-    connectionDB += "?prepared_statement_cache_size=0"
-
+# Switch from asyncpg to psycopg3
+connection = os.environ["DATABASE_URL"].replace(
+    "postgresql+asyncpg://", "postgresql+psycopg://"
+).replace(
+    "postgresql://", "postgresql+psycopg://"
+)
 
 vectorstore = PGVector(
     embeddings=embeddings,
-    connection=connectionDB,
+    connection=connection,
     collection_name="tech_docs",
-    async_mode=True,          # ← this is the fix
+    async_mode=True,
 )
 retriever = vectorstore.as_retriever(search_kwargs={"k": 5})
 
