@@ -10,9 +10,18 @@ load_dotenv()
 
 embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
 
+connectionDB = os.environ["DATABASE_URL"]
+
+# Disable prepared statement cache — required for PGVector with asyncpg
+if "?" in connectionDB:
+    connectionDB += "&prepared_statement_cache_size=0"
+else:
+    connectionDB += "?prepared_statement_cache_size=0"
+
+
 vectorstore = PGVector(
     embeddings=embeddings,
-    connection=os.environ["DATABASE_URL"],
+    connection=connectionDB,
     collection_name="tech_docs",
     async_mode=True,          # ← this is the fix
 )
