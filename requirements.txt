@@ -8,4 +8,5 @@ uvicorn
 psycopg2-binary
 python-dotenv
 unstructured
+markdown
 tiktoken
