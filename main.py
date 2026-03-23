@@ -14,6 +14,7 @@ vectorstore = PGVector(
     embeddings=embeddings,
     connection=os.environ["DATABASE_URL"],
     collection_name="tech_docs",
+    async_mode=True,          # ← this is the fix
 )
 retriever = vectorstore.as_retriever(search_kwargs={"k": 5})
 
