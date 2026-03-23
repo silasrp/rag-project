@@ -1,12 +1,18 @@
-from langchain_community.vectorstores import Chroma
+import os
+from dotenv import load_dotenv
+from langchain_postgres import PGVector
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 
-vectorstore = Chroma(
-    persist_directory="./chroma_db",
-    embedding_function=OpenAIEmbeddings(model="text-embedding-3-small"),
+load_dotenv()
+
+embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
+
+vectorstore = PGVector(
+    embeddings=embeddings,
+    connection=os.environ["DATABASE_URL"],
     collection_name="tech_docs",
 )
 retriever = vectorstore.as_retriever(search_kwargs={"k": 5})

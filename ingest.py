@@ -1,9 +1,11 @@
+import os
 from dotenv import load_dotenv
-load_dotenv()
 from langchain_community.document_loaders import DirectoryLoader, UnstructuredMarkdownLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings
-from langchain_community.vectorstores import Chroma
+from langchain_postgres import PGVector
+
+load_dotenv()
 
 loader = DirectoryLoader("./docs", glob="**/*.md", loader_cls=UnstructuredMarkdownLoader)
 documents = loader.load()
@@ -16,10 +18,11 @@ splitter = RecursiveCharacterTextSplitter(
 chunks = splitter.split_documents(documents)
 
 embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
-vectorstore = Chroma.from_documents(
+
+PGVector.from_documents(
     documents=chunks,
     embedding=embeddings,
-    persist_directory="./chroma_db",
+    connection=os.environ["DATABASE_URL"],
     collection_name="tech_docs",
 )
 print(f"Indexed {len(chunks)} chunks from {len(documents)} documents")
