@@ -7,6 +7,9 @@ from langchain_postgres import PGVector
 
 load_dotenv()
 
+# Ingestion is synchronous — use standard postgresql:// driver
+db_url = os.environ["DATABASE_URL"].replace("postgresql+asyncpg://", "postgresql://")
+
 loader = DirectoryLoader("./docs", glob="**/*.md", loader_cls=UnstructuredMarkdownLoader)
 documents = loader.load()
 
@@ -22,7 +25,7 @@ embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
 PGVector.from_documents(
     documents=chunks,
     embedding=embeddings,
-    connection=os.environ["DATABASE_URL"],
+    connection=db_url,
     collection_name="tech_docs",
 )
 print(f"Indexed {len(chunks)} chunks from {len(documents)} documents")
