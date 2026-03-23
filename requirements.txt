@@ -1,6 +1,11 @@
 langchain
 langchain-community
-langchain-ollama
+langchain-openai
+langchain-text-splitters
 chromadb
 fastapi
+python-multipart
+python-dotenv
 uvicorn
+unstructured
+markdown
