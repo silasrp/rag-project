@@ -1,6 +1,8 @@
+from dotenv import load_dotenv
+load_dotenv()
 from langchain_community.document_loaders import DirectoryLoader, UnstructuredMarkdownLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_ollama import OllamaEmbeddings
+from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import Chroma
 
 loader = DirectoryLoader("./docs", glob="**/*.md", loader_cls=UnstructuredMarkdownLoader)
@@ -13,7 +15,7 @@ splitter = RecursiveCharacterTextSplitter(
 )
 chunks = splitter.split_documents(documents)
 
-embeddings = OllamaEmbeddings(model="nomic-embed-text")
+embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
 vectorstore = Chroma.from_documents(
     documents=chunks,
     embedding=embeddings,

@@ -7,14 +7,20 @@ export default function RagDemo() {
   const [answer, setAnswer] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function ask() {
-    setAnswer("");
-    setLoading(true);
+async function ask() {
+  if (!question.trim()) return;
+  setAnswer("");
+  setLoading(true);
+
+  const reader = null;
+  try {
     const res = await fetch("/api/query", {
       method: "POST",
       body: JSON.stringify({ question }),
       headers: { "Content-Type": "application/json" },
     });
+
+    if (!res.ok) throw new Error(`Server error: ${res.status}`);
 
     const reader = res.body!.getReader();
     const decoder = new TextDecoder();
@@ -25,8 +31,14 @@ export default function RagDemo() {
       const text = decoder.decode(value).replace(/^data: /gm, "");
       setAnswer((prev) => prev + text);
     }
-    setLoading(false);
+  } catch (err) {
+    setAnswer("Something went wrong. Please try again.");
+    console.error(err);
+  } finally {
+    setLoading(false);  // always resets, even on error
   }
+}
+
 
   return (
     <main className="max-w-2xl mx-auto p-8">

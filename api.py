@@ -1,3 +1,5 @@
+from dotenv import load_dotenv
+load_dotenv()
 from main import chain
 from fastapi import FastAPI
 from fastapi.responses import StreamingResponse
