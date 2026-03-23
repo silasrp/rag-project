@@ -1,11 +1,17 @@
-from dotenv import load_dotenv
-load_dotenv()
-from main import chain
 from fastapi import FastAPI
 from fastapi.responses import StreamingResponse
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from main import chain
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://your-app.vercel.app"],  # update after Vercel deploy
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class Query(BaseModel):
     question: str
