@@ -5,6 +5,7 @@ langchain-postgres
 langchain-text-splitters
 fastapi
 uvicorn
+python-multipart
 python-dotenv
 unstructured
 markdown

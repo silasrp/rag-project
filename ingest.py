@@ -1,11 +1,13 @@
 import os
 from dotenv import load_dotenv
+load_dotenv()
 from langchain_community.document_loaders import DirectoryLoader, UnstructuredMarkdownLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings
 from langchain_postgres import PGVector
 
-load_dotenv()
+_dir = os.path.dirname(os.path.abspath(__file__))
+_docs_path = os.path.join(_dir, "docs")
 
 # Ingestion is synchronous — use standard postgresql:// driver
 db_url = os.environ["DATABASE_URL"].replace(
@@ -14,7 +16,7 @@ db_url = os.environ["DATABASE_URL"].replace(
     "postgresql://", "postgresql+psycopg://"
 )
 
-loader = DirectoryLoader("./docs", glob="**/*.md", loader_cls=UnstructuredMarkdownLoader)
+loader = DirectoryLoader(_docs_path, glob="**/*.md", loader_cls=UnstructuredMarkdownLoader)
 documents = loader.load()
 
 splitter = RecursiveCharacterTextSplitter(
@@ -25,6 +27,14 @@ splitter = RecursiveCharacterTextSplitter(
 chunks = splitter.split_documents(documents)
 
 embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
+
+# Delete existing collection to avoid duplicates, then re-create
+vectorstore = PGVector(
+    embeddings=embeddings,
+    connection=db_url,
+    collection_name="tech_docs",
+)
+vectorstore.delete_collection()
 
 PGVector.from_documents(
     documents=chunks,
