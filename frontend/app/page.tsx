@@ -9,20 +9,40 @@ interface DocEntry {
   title: string;
 }
 
+interface ModalState {
+  open: boolean;
+  title: string;
+  message: string;
+  variant: "success" | "error" | "info";
+}
+
 export default function RagDemo() {
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const [uploadStatus, setUploadStatus] = useState("");
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [resetStatus, setResetStatus] = useState("");
   const [resetting, setResetting] = useState(false);
 
   const [documents, setDocuments] = useState<DocEntry[]>([]);
   const [docsLoading, setDocsLoading] = useState(true);
+
+  const [modal, setModal] = useState<ModalState>({
+    open: false,
+    title: "",
+    message: "",
+    variant: "info",
+  });
+
+  function showModal(title: string, message: string, variant: ModalState["variant"] = "info") {
+    setModal({ open: true, title, message, variant });
+  }
+
+  function closeModal() {
+    setModal((prev) => ({ ...prev, open: false }));
+  }
 
   const fetchDocuments = useCallback(async () => {
     try {
@@ -47,13 +67,19 @@ export default function RagDemo() {
         const data = await res.json();
         if (data.status === "completed") {
           clearInterval(interval);
-          setUploadStatus(
-            `Ingestion completed. You can now query the contents of "${filename}".`
+          showModal(
+            "Ingestion Complete",
+            `You can now query the contents of "${filename}".`,
+            "success"
           );
           fetchDocuments();
         } else if (data.status === "failed") {
           clearInterval(interval);
-          setUploadStatus("Ingestion failed. Please try uploading again.");
+          showModal(
+            "Ingestion Failed",
+            "Something went wrong during ingestion. Please try uploading again.",
+            "error"
+          );
         }
       } catch {
         clearInterval(interval);
@@ -99,22 +125,21 @@ export default function RagDemo() {
   async function handleUpload() {
     const file = fileInputRef.current?.files?.[0];
     if (!file) {
-      setUploadStatus("Please select a file.");
+      showModal("No File Selected", "Please select a file to upload.", "error");
       return;
     }
 
     if (!file.name.endsWith(".md")) {
-      setUploadStatus("Only .md files are allowed.");
+      showModal("Invalid File", "Only .md files are allowed.", "error");
       return;
     }
 
     if (file.size > MAX_FILE_SIZE) {
-      setUploadStatus(`File exceeds the ${MAX_FILE_SIZE / 1024}KB size limit.`);
+      showModal("File Too Large", `File exceeds the ${MAX_FILE_SIZE / 1024}KB size limit.`, "error");
       return;
     }
 
     setUploading(true);
-    setUploadStatus("");
 
     try {
       const formData = new FormData();
@@ -128,17 +153,19 @@ export default function RagDemo() {
       const data = await res.json();
 
       if (!res.ok) {
-        setUploadStatus(data.detail || "Upload failed.");
+        showModal("Upload Failed", data.detail || "Upload failed.", "error");
       } else {
         const sizeKB = (data.size / 1024).toFixed(1);
-        setUploadStatus(
-          `Uploaded "${data.filename}" (${sizeKB}KB). Ingestion started...`
+        showModal(
+          "Upload Successful",
+          `Uploaded "${data.filename}" (${sizeKB}KB). Ingestion has started and will complete shortly.`,
+          "info"
         );
         if (fileInputRef.current) fileInputRef.current.value = "";
         pollIngestStatus(data.filename);
       }
     } catch {
-      setUploadStatus("Upload failed. Please try again.");
+      showModal("Upload Failed", "Upload failed. Please try again.", "error");
     } finally {
       setUploading(false);
     }
@@ -150,24 +177,24 @@ export default function RagDemo() {
     }
 
     setResetting(true);
-    setResetStatus("");
 
     try {
       const res = await fetch("/api/reset", { method: "POST" });
       const data = await res.json();
 
       if (!res.ok) {
-        setResetStatus("Reset failed. Please try again.");
+        showModal("Reset Failed", "Reset failed. Please try again.", "error");
       } else {
         const count = data.archived?.length ?? 0;
-        setResetStatus(
-          `Reset complete. ${count} document${count !== 1 ? "s" : ""} moved to archive. Knowledge base is now empty.`
+        showModal(
+          "Reset Complete",
+          `${count} document${count !== 1 ? "s" : ""} moved to archive. Knowledge base is now empty.`,
+          "success"
         );
-        setUploadStatus("");
         fetchDocuments();
       }
     } catch {
-      setResetStatus("Reset failed. Please try again.");
+      showModal("Reset Failed", "Reset failed. Please try again.", "error");
     } finally {
       setResetting(false);
     }
@@ -342,11 +369,6 @@ export default function RagDemo() {
                     {uploading ? "Uploading..." : "Upload & Ingest"}
                   </button>
                 </div>
-                {uploadStatus && (
-                  <p className="mt-3 text-xs text-gray-600 bg-gray-50 rounded-lg px-3 py-2">
-                    {uploadStatus}
-                  </p>
-                )}
               </div>
 
               {/* Reset card */}
@@ -375,16 +397,56 @@ export default function RagDemo() {
                 >
                   {resetting ? "Resetting..." : "Reset Everything"}
                 </button>
-                {resetStatus && (
-                  <p className="mt-3 text-xs text-gray-600 bg-gray-50 rounded-lg px-3 py-2">
-                    {resetStatus}
-                  </p>
-                )}
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Modal overlay */}
+      {modal.open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={closeModal} />
+          <div className="relative bg-white rounded-2xl shadow-xl max-w-md w-full mx-4 p-6 animate-in">
+            <div className="flex items-center gap-3 mb-4">
+              {modal.variant === "success" && (
+                <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+                  <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                  </svg>
+                </div>
+              )}
+              {modal.variant === "error" && (
+                <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+                  <svg className="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+                  </svg>
+                </div>
+              )}
+              {modal.variant === "info" && (
+                <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
+                  <svg className="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
+                  </svg>
+                </div>
+              )}
+              <h3 className="text-lg font-semibold text-gray-900">{modal.title}</h3>
+            </div>
+            <p className="text-sm text-gray-600 leading-relaxed mb-6 ml-[52px]">
+              {modal.message}
+            </p>
+            <div className="flex justify-end">
+              <button
+                onClick={closeModal}
+                className="bg-indigo-600 text-white text-sm font-medium px-6 py-2.5
+                  rounded-lg hover:bg-indigo-700 transition-colors"
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
