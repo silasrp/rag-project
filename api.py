@@ -94,7 +94,7 @@ async def ingest_status():
 
 
 @app.post("/reset")
-async def reset_database():
+def reset_database():
     docs_dir = os.path.join(_dir, "docs")
     archive_dir = os.path.join(_dir, "archive")
 
