@@ -229,7 +229,7 @@ export default function RagDemo() {
       </aside>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
         {/* Header */}
         <header className="bg-white border-b border-gray-200 px-8 py-5">
           <h1 className="text-xl font-semibold text-gray-900">Ask a Question</h1>
@@ -297,7 +297,7 @@ export default function RagDemo() {
                   </div>
                   <h3 className="text-sm font-medium text-gray-500">Answer</h3>
                 </div>
-                <div className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">
+                <div className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap break-words overflow-hidden">
                   {answer}
                 </div>
               </div>
