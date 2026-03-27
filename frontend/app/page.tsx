@@ -1,8 +1,13 @@
 // app/page.tsx
 "use client";
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 
 const MAX_FILE_SIZE = 50 * 1024; // 50 KB
+
+interface DocEntry {
+  filename: string;
+  title: string;
+}
 
 export default function RagDemo() {
   const [question, setQuestion] = useState("");
@@ -16,6 +21,25 @@ export default function RagDemo() {
   const [resetStatus, setResetStatus] = useState("");
   const [resetting, setResetting] = useState(false);
 
+  const [documents, setDocuments] = useState<DocEntry[]>([]);
+  const [docsLoading, setDocsLoading] = useState(true);
+
+  const fetchDocuments = useCallback(async () => {
+    try {
+      const res = await fetch("/api/documents");
+      const data = await res.json();
+      setDocuments(data.documents ?? []);
+    } catch {
+      setDocuments([]);
+    } finally {
+      setDocsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchDocuments();
+  }, [fetchDocuments]);
+
   const pollIngestStatus = useCallback((filename: string) => {
     const interval = setInterval(async () => {
       try {
@@ -26,6 +50,7 @@ export default function RagDemo() {
           setUploadStatus(
             `Ingestion completed. You can now query the contents of "${filename}".`
           );
+          fetchDocuments();
         } else if (data.status === "failed") {
           clearInterval(interval);
           setUploadStatus("Ingestion failed. Please try uploading again.");
@@ -34,7 +59,7 @@ export default function RagDemo() {
         clearInterval(interval);
       }
     }, 2000);
-  }, []);
+  }, [fetchDocuments]);
 
   async function ask() {
     if (!question.trim()) return;
@@ -135,6 +160,7 @@ export default function RagDemo() {
           `Reset complete. ${count} document${count !== 1 ? "s" : ""} moved to archive. Knowledge base is now empty.`
         );
         setUploadStatus("");
+        fetchDocuments();
       }
     } catch {
       setResetStatus("Reset failed. Please try again.");
@@ -144,7 +170,35 @@ export default function RagDemo() {
   }
 
   return (
-    <main className="max-w-2xl mx-auto p-8">
+    <div className="flex min-h-screen">
+      {/* Sidebar */}
+      <aside className="w-64 shrink-0 border-r border-gray-200 bg-gray-50 p-5">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500 mb-4">
+          Context
+        </h2>
+        {docsLoading ? (
+          <p className="text-sm text-gray-400">Loading...</p>
+        ) : documents.length === 0 ? (
+          <p className="text-sm text-gray-400 italic">
+            No context available. Please upload a document.
+          </p>
+        ) : (
+          <ul className="space-y-2">
+            {documents.map((doc) => (
+              <li
+                key={doc.filename}
+                className="text-sm text-gray-700 bg-white rounded px-3 py-2 shadow-sm border border-gray-100"
+                title={doc.filename}
+              >
+                {doc.title}
+              </li>
+            ))}
+          </ul>
+        )}
+      </aside>
+
+      {/* Main content */}
+      <main className="flex-1 max-w-2xl mx-auto p-8">
       <h1 className="text-2xl font-medium mb-6">Docs Q&A</h1>
       <textarea
         className="w-full border rounded p-3 mb-4"
@@ -211,5 +265,6 @@ export default function RagDemo() {
         )}
       </section>
     </main>
+    </div>
   );
 }

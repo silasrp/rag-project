@@ -127,3 +127,40 @@ def reset_database():
         pass  # Collection may not exist yet
 
     return {"status": "ok", "archived": moved}
+
+
+@app.get("/documents")
+def list_documents():
+    docs_dir = os.path.join(_dir, "docs")
+    documents = []
+    if os.path.isdir(docs_dir):
+        for filename in sorted(os.listdir(docs_dir)):
+            if not filename.endswith(".md"):
+                continue
+            filepath = os.path.join(docs_dir, filename)
+            try:
+                with open(filepath, "r", encoding="utf-8") as f:
+                    content = f.read(2048)  # read enough to find a title
+                title = _extract_title(content, filename)
+                documents.append({"filename": filename, "title": title})
+            except Exception:
+                documents.append({"filename": filename, "title": filename})
+    return {"documents": documents}
+
+
+def _extract_title(content: str, fallback: str) -> str:
+    """Extract a title from markdown content."""
+    for line in content.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        # Match markdown headings: # Title
+        m = re.match(r"^#{1,3}\s+(.+)$", line)
+        if m:
+            return m.group(1).strip()
+        # Match bold title lines: **Title**
+        m = re.match(r"^\*\*(.+?)\*\*\s*$", line)
+        if m:
+            return m.group(1).strip()
+    # Fallback: filename without extension
+    return fallback.replace(".md", "").replace("-", " ").replace("_", " ").title()
