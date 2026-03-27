@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 from langchain_postgres import PGVector
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
-from langchain_core.runnables import RunnablePassthrough
+from langchain_core.runnables import RunnableLambda
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 
 load_dotenv()
@@ -17,13 +17,19 @@ connection = os.environ["DATABASE_URL"].replace(
     "postgresql://", "postgresql+psycopg://"
 )
 
-vectorstore = PGVector(
-    embeddings=embeddings,
-    connection=connection,
-    collection_name="tech_docs",
-    async_mode=True,
-)
-retriever = vectorstore.as_retriever(search_kwargs={"k": 5})
+
+async def get_context(question: str):
+    try:
+        vectorstore = PGVector(
+            embeddings=embeddings,
+            connection=connection,
+            collection_name="tech_docs",
+            async_mode=True,
+        )
+        retriever = vectorstore.as_retriever(search_kwargs={"k": 5})
+        return await retriever.ainvoke(question)
+    except ValueError:
+        return []
 
 prompt = ChatPromptTemplate.from_template("""
 You are a helpful assistant for technical documentation.
@@ -41,7 +47,7 @@ Answer concisely with references to specific sections when relevant.
 llm = ChatOpenAI(model="gpt-4o-mini", streaming=True)
 
 chain = (
-    {"context": retriever, "question": RunnablePassthrough()}
+    {"context": RunnableLambda(get_context), "question": lambda x: x}
     | prompt
     | llm
     | StrOutputParser()
