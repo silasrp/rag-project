@@ -81,7 +81,11 @@ export default function RagDemo() {
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-        const text = decoder.decode(value).replace(/^data: /gm, "");
+        const text = decoder.decode(value)
+              .split("\n")
+              .filter((line) => line.startsWith("data: "))
+              .map((line) => line.slice(6))
+              .join("");
         setAnswer((prev) => prev + text);
       }
     } catch (err) {
@@ -297,7 +301,7 @@ export default function RagDemo() {
                   </div>
                   <h3 className="text-sm font-medium text-gray-500">Answer</h3>
                 </div>
-                <div className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap break-words overflow-hidden">
+                <div className="text-sm text-gray-800 leading-relaxed break-words overflow-hidden">
                   {answer}
                 </div>
               </div>
