@@ -310,7 +310,7 @@ export default function RagDemo() {
             {/* Management section */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Upload card */}
-              <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+              <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 flex flex-col">
                 <div className="flex items-center gap-2.5 mb-4">
                   <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
                     <svg className="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
@@ -322,7 +322,7 @@ export default function RagDemo() {
                     <p className="text-xs text-gray-400">Markdown files, max 50KB</p>
                   </div>
                 </div>
-                <div className="space-y-3">
+                <div className="space-y-3 mt-auto">
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -350,7 +350,7 @@ export default function RagDemo() {
               </div>
 
               {/* Reset card */}
-              <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+              <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 flex flex-col">
                 <div className="flex items-center gap-2.5 mb-4">
                   <div className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center">
                     <svg className="w-4 h-4 text-red-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
@@ -369,7 +369,7 @@ export default function RagDemo() {
                 <button
                   onClick={handleReset}
                   disabled={resetting}
-                  className="w-full bg-white text-red-600 text-sm font-medium
+                  className="w-full mt-auto bg-white text-red-600 text-sm font-medium
                     py-2.5 rounded-lg border border-red-200 hover:bg-red-50
                     disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
