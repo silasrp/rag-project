@@ -36,6 +36,8 @@ export default function RagDemo() {
     variant: "info",
   });
 
+  const [mobileDismissed, setMobileDismissed] = useState(false);
+
   function showModal(title: string, message: string, variant: ModalState["variant"] = "info") {
     setModal({ open: true, title, message, variant });
   }
@@ -202,6 +204,30 @@ export default function RagDemo() {
 
   return (
     <div className="flex h-screen bg-gray-50">
+      {/* Mobile notice overlay */}
+      {!mobileDismissed && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-gray-50 p-6 md:hidden">
+          <div className="max-w-sm w-full text-center space-y-6">
+            <div className="mx-auto w-16 h-16 rounded-2xl bg-indigo-100 flex items-center justify-center">
+              <svg className="w-8 h-8 text-indigo-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 17.25v1.007a3 3 0 0 1-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0 1 15 18.257V17.25m6-12V15a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 15V5.25A2.25 2.25 0 0 1 5.25 3h13.5A2.25 2.25 0 0 1 21 5.25Z" />
+              </svg>
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900 mb-2">Desktop Experience Recommended</h2>
+              <p className="text-sm text-gray-500 leading-relaxed">
+                This application is designed for desktop browsers and may not display correctly on smaller screens. For the best experience, please visit on a laptop or desktop computer.
+              </p>
+            </div>
+            <button
+              onClick={() => setMobileDismissed(true)}
+              className="text-sm text-indigo-600 font-medium hover:text-indigo-700 transition-colors"
+            >
+              Continue anyway &rarr;
+            </button>
+          </div>
+        </div>
+      )}
       {/* Sidebar */}
       <aside className="w-72 shrink-0 bg-white border-r border-gray-200 flex flex-col">
         <div className="p-6 border-b border-gray-100">
