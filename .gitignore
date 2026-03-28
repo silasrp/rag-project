@@ -10037,3 +10037,8 @@ docs/product.md
 frontend/app/page.tsx
 chroma_db/29253f13-f9f4-4aa6-bbf7-abcb16c2aab8/length.bin
 chroma_db/29253f13-f9f4-4aa6-bbf7-abcb16c2aab8/length.bin
+chroma_db/517e0d97-be08-4fc9-9a49-8a0823d655ae/data_level0.bin
+chroma_db/517e0d97-be08-4fc9-9a49-8a0823d655ae/header.bin
+chroma_db/517e0d97-be08-4fc9-9a49-8a0823d655ae/length.bin
+chroma_db/517e0d97-be08-4fc9-9a49-8a0823d655ae/link_lists.bin
+docs/cotton.md

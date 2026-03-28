@@ -114,3 +114,30 @@ async def reset_database():
         pass  # Collection may not exist yet
 
     return {"status": "ok", "archived": moved}
+@app.get("/documents")
+def list_documents():
+    docs_dir = os.path.join(_dir, "docs")
+    result = []
+    if os.path.isdir(docs_dir):
+        for fname in sorted(os.listdir(docs_dir)):
+            if fname.endswith(".md"):
+                title = _extract_title(os.path.join(docs_dir, fname), fname)
+                result.append({"filename": fname, "title": title})
+    return {"documents": result}
+
+
+def _extract_title(path: str, fallback: str) -> str:
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                if line.startswith("# "):
+                    return line[2:].strip()
+                if line.startswith("**") and line.endswith("**"):
+                    return line.strip("* ")
+                return line[:60]
+    except Exception:
+        pass
+    return fallback
