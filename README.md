@@ -31,6 +31,9 @@ Technical documentation is notoriously hard to search. Keyword search misses con
 
 The system is split into two pipelines: an offline ingestion pipeline that runs once (or whenever docs change), and an online query pipeline that runs on every user request.
 
+<img width="1132" height="866" alt="image" src="https://github.com/user-attachments/assets/985931eb-6425-4c0b-83f8-925e557492fa" />
+
+
 ### Ingestion pipeline (offline)
 
 ```
